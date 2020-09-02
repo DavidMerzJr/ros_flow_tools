@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros_flow_tools</name>
+  <version>0.1.0</version>
+  <description>
+    Contains generic nodes useful for connecting various parts of a ROS graph to each other.
+  </description>
+  <maintainer email="david.merz@swri.org">David Merz, Jr.</maintainer>
+  <license>Apache 2.0</license>
+  <author email="david.merz@swri.org">David Merz, Jr.</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_srvs</depend>
+
+</package>
