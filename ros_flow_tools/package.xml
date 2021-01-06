@@ -11,6 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>random_numbers</depend>
   <depend>roscpp</depend>
   <depend>std_srvs</depend>
 

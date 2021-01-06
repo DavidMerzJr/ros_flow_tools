@@ -4,9 +4,12 @@ project(ros_flow_tools)
 add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
+  random_numbers
   roscpp
   std_srvs
 )
+
+find_package(OpenCV REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -18,9 +21,11 @@ catkin_package(
   LIBRARIES
     ros_flow_tools
   CATKIN_DEPENDS
+    random_numbers
     roscpp
     std_srvs
   DEPENDS
+    OpenCV
 )
 
 ###########
@@ -43,6 +48,14 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+add_executable(kobold_crawler
+  src/kobold_crawler.cpp
+)
+target_link_libraries(kobold_crawler
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
@@ -53,10 +66,10 @@ target_link_libraries(${PROJECT_NAME}
 # )
 
 ## Mark libraries for installation
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} kobold_crawler
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation
