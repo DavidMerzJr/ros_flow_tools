@@ -14,7 +14,33 @@
 namespace kobold_crawler
 {
 
-// Represents the location of a cell in the map/image
+/*
+ * Potential Improvements:
+ * - write highly-parallelized kernel convolution
+ * - speed-test custom kernel convolution vs opencv
+ * - change from visited vs unvisited maps to a boolean array
+ * - speed-test visited vs unvisited maps vs boolean array
+ * - actual GUI
+ * - allow imput of different kernels - horizontal striations could indicate 'cross section'
+ * - try 'overworld maps' - elevation differences, cost going up, no negative cost going down
+ * - nodes of 'value'
+ * - parallelization of Dijkstra's
+ * - if nothing else, parallelize planning of multiple routes - although there will be 'merging'
+ *   required and it may result in slightly more dense paths
+ *   - simple merging algorithm:
+ *     for (each 'new map')
+ *     {
+ *       partial_update = new[travelled] - old[travelled];
+ *       total_update += partial_update;
+ *     }
+ *     map = old + total_update;
+ * - display of new paths as they appear
+ * - maps are fairly small memory-wise - being able to step back and forth between iterations
+ * - parameterize map size
+ * - allow 'reset' to new map
+ */
+
+// Represents the location of a cell in a map/image
 struct CoordinatePair
 {
   int i;
@@ -55,14 +81,21 @@ struct Cell
   }
 };
 
+/**
+ * @brief init_map - original implementation of init_map, using hand-made kernel convolution
+ * @param i_extent
+ * @param j_extent
+ * @param rng
+ * @return
+ */
 cv::Mat init_map(int i_extent, int j_extent, random_numbers::RandomNumberGenerator& rng)
 {
   // Initialize entire map to 0 usage and 255 resistance
   cv::Mat map (i_extent, j_extent, CV_8UC3, cv::Scalar(0,255,0));
-  ROS_INFO_STREAM("rows" << map.rows);
-  ROS_INFO_STREAM("columns" << map.cols);
+  ROS_INFO_STREAM("rows: " << map.rows);
+  ROS_INFO_STREAM("columns: " << map.cols);
 
-  // Fill most of the map with random resitance
+  // Fill most of the map with random resistance, leaving high-resistance border
   for (int i = 2; i < i_extent-2; ++i)
   {
     for (int j = 2; j < j_extent-2; ++j)
@@ -71,7 +104,8 @@ cv::Mat init_map(int i_extent, int j_extent, random_numbers::RandomNumberGenerat
     }
   }
 
-  // Smooth out the random resistance somewhat by passing a weighted 5x5 kernel over the image
+  // Smooth out the random resistance somewhat by passing a weighted 5x5 kernel over the image, and
+  // return the smoothed image
   cv::Mat map2 = map.clone();
   for (int i = 2; i < i_extent-2; ++i)
   {
@@ -88,6 +122,47 @@ cv::Mat init_map(int i_extent, int j_extent, random_numbers::RandomNumberGenerat
     }
   }
 
+  return map2;
+}
+
+/**
+ * @brief init_map_cv - simplified map initialization using opencv kernel convolution
+ * @param i_extent
+ * @param j_extent
+ * @param rng
+ * @return
+ */
+cv::Mat init_map_cv(int i_extent, int j_extent, random_numbers::RandomNumberGenerator& rng)
+{
+  // Create our kernel - static to avoid re-instantiation
+  static float kernel_data[] =
+  {
+    1, 1,  1, 1, 1,
+    1, 2,  2, 2, 1,
+    1, 2, 16, 2, 1,
+    1, 2,  2, 2, 1,
+    1, 1,  1, 1, 1
+  };
+  static cv::Mat kernel = cv::Mat(5, 5, CV_32F, kernel_data) / 48.0f;
+
+  // Initialize entire map to 0 usage and 255 resistance
+  cv::Mat map (i_extent, j_extent, CV_8UC3, cv::Scalar(0,255,0));
+  ROS_INFO_STREAM("rows: " << map.rows);
+  ROS_INFO_STREAM("columns: " << map.cols);
+
+  // Fill most of the map with random resistance, leaving high-resistance border
+  for (int i = 2; i < i_extent-2; ++i)
+  {
+    for (int j = 2; j < j_extent-2; ++j)
+    {
+      map.at<cv::Vec3b>(i,j)[1] = rng.uniformInteger(50, 200);
+    }
+  }
+
+  // Smooth out the random resistance somewhat by passing a weighted 5x5 kernel over the image, and
+  // return the smoothed image
+  cv::Mat map2 = map.clone();
+  cv::filter2D(map, map2, -1, kernel, cv::Point(-1, 1), 0, cv::BORDER_DEFAULT);
   return map2;
 }
 
@@ -286,7 +361,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   random_numbers::RandomNumberGenerator rng;
 
-  cv::Mat map = kobold_crawler::init_map(100, 100, rng);
+  cv::Mat map = kobold_crawler::init_map_cv(200, 200, rng);
 
   bool keep_going = true;
   while (keep_going)
