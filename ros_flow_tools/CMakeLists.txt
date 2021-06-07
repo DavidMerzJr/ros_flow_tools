@@ -5,7 +5,9 @@ add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  shape_msgs
   std_srvs
+  visualization_msgs
 )
 
 ###################################
@@ -19,7 +21,9 @@ catkin_package(
     ros_flow_tools
   CATKIN_DEPENDS
     roscpp
+    shape_msgs
     std_srvs
+    visualization_msgs
   DEPENDS
 )
 
@@ -43,6 +47,13 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+add_executable(translate_mesh_node
+  src/translate_mesh_node.cpp
+)
+target_link_libraries(translate_mesh_node
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
@@ -53,7 +64,7 @@ target_link_libraries(${PROJECT_NAME}
 # )
 
 ## Mark libraries for installation
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} translate_mesh_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
