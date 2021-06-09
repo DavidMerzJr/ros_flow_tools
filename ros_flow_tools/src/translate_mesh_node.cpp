@@ -21,6 +21,8 @@ void chatterCallback(const shape_msgs::Mesh::ConstPtr& msg)
     mrkr.scale.x = 1;
     mrkr.scale.y = 1;
     mrkr.scale.z = 1;
+    mrkr.color.g = 1.0;
+    mrkr.color.a = 1.0;
 
     const std::size_t len = msg->vertices.size();
     for (const shape_msgs::MeshTriangle& t : msg->triangles)
