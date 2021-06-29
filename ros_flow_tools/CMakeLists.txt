@@ -4,11 +4,16 @@ project(ros_flow_tools)
 add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
+  pcl_ros
   roscpp
   shape_msgs
+  std_msgs
   std_srvs
+  tf2_ros
   visualization_msgs
 )
+
+find_package(PCL REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -20,9 +25,12 @@ catkin_package(
   LIBRARIES
     ros_flow_tools
   CATKIN_DEPENDS
+    pcl_ros
     roscpp
     shape_msgs
+    std_msgs
     std_srvs
+    tf2_ros
     visualization_msgs
   DEPENDS
 )
@@ -34,6 +42,7 @@ catkin_package(
 include_directories(
  include
  ${catkin_INCLUDE_DIRS}
+ ${PCL_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
@@ -54,6 +63,21 @@ target_link_libraries(translate_mesh_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(pose_adjuster_node
+  src/pose_adjuster.cpp
+)
+target_link_libraries(pose_adjuster_node
+  ${catkin_LIBRARIES}
+)
+
+add_executable(pointcloud_publisher
+  src/pointcloud_publisher.cpp
+)
+target_link_libraries(pointcloud_publisher
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
@@ -64,7 +88,11 @@ target_link_libraries(translate_mesh_node
 # )
 
 ## Mark libraries for installation
-install(TARGETS ${PROJECT_NAME} translate_mesh_node
+install(TARGETS
+    ${PROJECT_NAME}
+    pointcloud_publisher
+    pose_adjuster_node
+    translate_mesh_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

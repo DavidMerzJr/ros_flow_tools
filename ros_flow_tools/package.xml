@@ -11,9 +11,12 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>pcl_ros</depend>
   <depend>roscpp</depend>
   <depend>shape_msgs</depend>
+  <depend>std_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
   <depend>visualization_msgs</depend>
 
 </package>
